@@ -1,60 +1,63 @@
 import random
 import utils
 
-map_size = 16  # int(input('Enter map size (16): '))
-initial_land = 0.5  # float(input('Enter initial land (0.5): '))
-smoothing = 3  # int(input('Enter smoothing (3): '))
-relief = 4  # int(input('Enter relief (4): '))
-tribes = ['Vengir', 'Bardur', 'Oumaji']  # list(map(str, input('Enter tribes: ').split()))
+# Setup map values
+map_size = 16 # x*x size
+initial_land = 0.5 # Proportion of land to total tiles
+smoothing = 3
+relief = 4
+tribes = ['Vengir', 'Bardur', 'Oumaji'] # Tribes in map
 
-tribes_list = ['Xin-xi', 'Imperius', 'Bardur', 'Oumaji', 'Kickoo', 'Hoodrick', 'Luxidoor', 'Vengir', 'Zebasi',
+# Setup game info
+TRIBES_LIST = ['Xin-xi', 'Imperius', 'Bardur', 'Oumaji', 'Kickoo', 'Hoodrick', 'Luxidoor', 'Vengir', 'Zebasi',
                'Ai-mo', 'Quetzali', 'Yadakk', 'Aquarion', 'Elyrion', 'Polaris']
+TERRAIN_TYPES = ['forest', 'fruit', 'game', 'ground', 'mountain']
+SPECIAL_TERRAIN = ['crop', 'fish', 'metal', 'ocean', 'ruin', 'village', 'water', 'whale']
 
-terrain = ['forest', 'fruit', 'game', 'ground', 'mountain']
-
-general_terrain = ['crop', 'fish', 'metal', 'ocean', 'ruin', 'village', 'water', 'whale']
-
-_____ = 2
-____ = 1.5
-___ = 1
-__ = 0.5
-_ = 0.1
+# Probability levels
+HIGH = 2
+MED_HIGH = 1.5
+MED = 1
+LOW_MED = 0.5
+LOW = 0.1
 
 BORDER_EXPANSION = 1 / 3
 
 terrain_probs = {'water': {'Xin-xi': 0, 'Imperius': 0, 'Bardur': 0, 'Oumaji': 0, 'Kickoo': 0.4,
                            'Hoodrick': 0, 'Luxidoor': 0, 'Vengir': 0, 'Zebasi': 0, 'Ai-mo': 0,
                            'Quetzali': 0, 'Yadakk': 0, 'Aquarion': 0.3, 'Elyrion': 0},
-                 'forest': {'Xin-xi': ___, 'Imperius': ___, 'Bardur': ___, 'Oumaji': _, 'Kickoo': ___,
-                            'Hoodrick': ____, 'Luxidoor': ___, 'Vengir': ___, 'Zebasi': __, 'Ai-mo': ___,
-                            'Quetzali': ___, 'Yadakk': __, 'Aquarion': __, 'Elyrion': ___},
-                 'mountain': {'Xin-xi': ____, 'Imperius': ___, 'Bardur': ___, 'Oumaji': ___, 'Kickoo': __,
-                              'Hoodrick': __, 'Luxidoor': ___, 'Vengir': ___, 'Zebasi': __, 'Ai-mo': ____,
-                              'Quetzali': ___, 'Yadakk': __, 'Aquarion': ___, 'Elyrion': __},
-                 'metal': {'Xin-xi': ___, 'Imperius': ___, 'Bardur': ___, 'Oumaji': ___, 'Kickoo': ___,
-                           'Hoodrick': ___, 'Luxidoor': ___, 'Vengir': _____, 'Zebasi': ___, 'Ai-mo': ___,
-                           'Quetzali': _, 'Yadakk': ___, 'Aquarion': ___, 'Elyrion': ___},
-                 'fruit': {'Xin-xi': ___, 'Imperius': ___, 'Bardur': ____, 'Oumaji': ___, 'Kickoo': ___,
-                           'Hoodrick': ___, 'Luxidoor': _____, 'Vengir': _, 'Zebasi': __, 'Ai-mo': ___,
-                           'Quetzali': _____, 'Yadakk': ____, 'Aquarion': ___, 'Elyrion': ___},
-                 'crop': {'Xin-xi': ___, 'Imperius': ___, 'Bardur': _, 'Oumaji': ___, 'Kickoo': ___,
-                          'Hoodrick': ___, 'Luxidoor': ___, 'Vengir': ___, 'Zebasi': ___, 'Ai-mo': _,
-                          'Quetzali': _, 'Yadakk': ___, 'Aquarion': ___, 'Elyrion': ____},
-                 'game': {'Xin-xi': ___, 'Imperius': ___, 'Bardur': _____, 'Oumaji': ___, 'Kickoo': ___,
-                          'Hoodrick': ___, 'Luxidoor': __, 'Vengir': _, 'Zebasi': ___, 'Ai-mo': ___,
-                          'Quetzali': ___, 'Yadakk': ___, 'Aquarion': ___, 'Elyrion': ___},
-                 'fish': {'Xin-xi': ___, 'Imperius': ___, 'Bardur': ___, 'Oumaji': ___, 'Kickoo': ____,
-                          'Hoodrick': ___, 'Luxidoor': ___, 'Vengir': _, 'Zebasi': ___, 'Ai-mo': ___,
-                          'Quetzali': ___, 'Yadakk': ___, 'Aquarion': ___, 'Elyrion': ___},
-                 'whale': {'Xin-xi': ___, 'Imperius': ___, 'Bardur': ___, 'Oumaji': ___, 'Kickoo': ___,
-                           'Hoodrick': ___, 'Luxidoor': ___, 'Vengir': ___, 'Zebasi': ___, 'Ai-mo': ___,
-                           'Quetzali': ___, 'Yadakk': ___, 'Aquarion': ___, 'Elyrion': ___}}
+                 'forest': {'Xin-xi': MED, 'Imperius': MED, 'Bardur': MED, 'Oumaji': LOW, 'Kickoo': MED,
+                            'Hoodrick': MED_HIGH, 'Luxidoor': MED, 'Vengir': MED, 'Zebasi': LOW_MED, 'Ai-mo': MED,
+                            'Quetzali': MED, 'Yadakk': LOW_MED, 'Aquarion': LOW_MED, 'Elyrion': MED},
+                 'mountain': {'Xin-xi': MED_HIGH, 'Imperius': MED, 'Bardur': MED, 'Oumaji': MED, 'Kickoo': LOW_MED,
+                              'Hoodrick': LOW_MED, 'Luxidoor': MED, 'Vengir': MED, 'Zebasi': LOW_MED, 'Ai-mo': MED_HIGH,
+                              'Quetzali': MED, 'Yadakk': LOW_MED, 'Aquarion': MED, 'Elyrion': LOW_MED},
+                 'metal': {'Xin-xi': MED, 'Imperius': MED, 'Bardur': MED, 'Oumaji': MED, 'Kickoo': MED,
+                           'Hoodrick': MED, 'Luxidoor': MED, 'Vengir': HIGH, 'Zebasi': MED, 'Ai-mo': MED,
+                           'Quetzali': LOW, 'Yadakk': MED, 'Aquarion': MED, 'Elyrion': MED},
+                 'fruit': {'Xin-xi': MED, 'Imperius': MED, 'Bardur': MED_HIGH, 'Oumaji': MED, 'Kickoo': MED,
+                           'Hoodrick': MED, 'Luxidoor': HIGH, 'Vengir': LOW, 'Zebasi': LOW_MED, 'Ai-mo': MED,
+                           'Quetzali': HIGH, 'Yadakk': MED_HIGH, 'Aquarion': MED, 'Elyrion': MED},
+                 'crop': {'Xin-xi': MED, 'Imperius': MED, 'Bardur': LOW, 'Oumaji': MED, 'Kickoo': MED,
+                          'Hoodrick': MED, 'Luxidoor': MED, 'Vengir': MED, 'Zebasi': MED, 'Ai-mo': LOW,
+                          'Quetzali': LOW, 'Yadakk': MED, 'Aquarion': MED, 'Elyrion': MED_HIGH},
+                 'game': {'Xin-xi': MED, 'Imperius': MED, 'Bardur': HIGH, 'Oumaji': MED, 'Kickoo': MED,
+                          'Hoodrick': MED, 'Luxidoor': LOW_MED, 'Vengir': LOW, 'Zebasi': MED, 'Ai-mo': MED,
+                          'Quetzali': MED, 'Yadakk': MED, 'Aquarion': MED, 'Elyrion': MED},
+                 'fish': {'Xin-xi': MED, 'Imperius': MED, 'Bardur': MED, 'Oumaji': MED, 'Kickoo': MED_HIGH,
+                          'Hoodrick': MED, 'Luxidoor': MED, 'Vengir': LOW, 'Zebasi': MED, 'Ai-mo': MED,
+                          'Quetzali': MED, 'Yadakk': MED, 'Aquarion': MED, 'Elyrion': MED},
+                 'whale': {'Xin-xi': MED, 'Imperius': MED, 'Bardur': MED, 'Oumaji': MED, 'Kickoo': MED,
+                           'Hoodrick': MED, 'Luxidoor': MED, 'Vengir': MED, 'Zebasi': MED, 'Ai-mo': MED,
+                           'Quetzali': MED, 'Yadakk': MED, 'Aquarion': MED, 'Elyrion': MED}}
 
 general_probs = {'mountain': 0.15, 'forest': 0.4, 'fruit': 0.5, 'crop': 0.5,
                  'fish': 0.5, 'game': 0.5, 'whale': 0.4, 'metal': 0.5}
 
+# Create initial world map 2D array with tile objects
 world_map = [{'type': 'ocean', 'above': None, 'road': False, 'tribe': 'Xin-xi'} for i in range(map_size ** 2)]
 
+# Randomly make landmasses
 j = 0
 while j < map_size ** 2 * initial_land:
     cell = random.randrange(0, map_size ** 2)
@@ -62,6 +65,7 @@ while j < map_size ** 2 * initial_land:
         j += 1
         world_map[cell]['type'] = 'ground'
 
+# Smooth out landmasses based on surrounding tile types
 land_coefficient = (0.5 + relief) / 9
 
 for i in range(smoothing):
@@ -82,6 +86,7 @@ for i in range(smoothing):
         else:
             world_map[cell]['type'] = 'ocean'
 
+# Find possible capital locations
 capital_cells = []
 capital_map = {}
 for tribe in tribes:
@@ -89,6 +94,8 @@ for tribe in tribes:
         for column in range(2, map_size - 2):
             if world_map[row * map_size + column]['type'] == 'ground':
                 capital_map[row * map_size + column] = 0
+
+# Place capitals
 for tribe in tribes:
     max_ = 0
     for cell in capital_map:
@@ -110,6 +117,7 @@ for i in range(len(capital_cells)):
     world_map[(capital_cells[i] // map_size) * map_size + (capital_cells[i] % map_size)]['above'] = 'capital'
     world_map[(capital_cells[i] // map_size) * map_size + (capital_cells[i] % map_size)]['tribe'] = tribes[i]
 
+# Expand tribe's territory
 done_tiles = []
 active_tiles = []
 for i in range(len(capital_cells)):
@@ -134,6 +142,7 @@ while len(done_tiles) != map_size ** 2:
             else:
                 active_tiles[i].remove(rand_cell)
 
+# Assign tile types based on tribe probabilities
 for cell in range(map_size**2):
     if world_map[cell]['type'] == 'ground' and world_map[cell]['above'] is None:
         rand = random.random()
@@ -145,6 +154,7 @@ for cell in range(map_size**2):
         if rand < terrain_probs['water'][world_map[cell]['tribe']]:
             world_map[cell]['type'] = 'ocean'
 
+# Generate villages
 village_map = []
 for cell in range(map_size**2):
     row = cell // map_size
@@ -182,12 +192,11 @@ while 0 in village_map:
         village_map[cell] = max(village_map[cell], 1)
     village_count += 1
 
-
 def proc(cell_, probability):
     return (village_map[cell_] == 2 and random.random() < probability) or\
            (village_map[cell_] == 1 and random.random() < probability * BORDER_EXPANSION)
 
-
+# Add resources to map
 for cell in range(map_size**2):
     if world_map[cell]['type'] == 'ground':
         fruit = general_probs['fruit'] * terrain_probs['fruit'][world_map[cell]['tribe']]
@@ -216,6 +225,7 @@ for cell in range(map_size**2):
         if proc(cell, general_probs['metal'] * terrain_probs['metal'][world_map[cell]['tribe']]):
             world_map[cell]['above'] = 'metal'
 
+# Add ruins
 ruins_number = round(map_size**2/40)
 water_ruins_number = round(ruins_number/3)
 ruins_count = 0
@@ -254,7 +264,7 @@ def post_generate(resource, underneath, quantity, capital):
                 world_map[neighbour_]['type'] = 'water'
         resources_ = check_resources(resource, capital)
 
-
+# Check tribe capitals have correct starting resources
 for capital in capital_cells:
     if world_map[capital]['tribe'] == 'Imperius':
         post_generate('fruit', 'ground', 2, capital)
@@ -284,7 +294,9 @@ for capital in capital_cells:
         for neighbour in utils.circle(capital, 1, map_size):
             world_map[neighbour]['tribe'] = 'Polaris'
 
-# optional display, set up as you want
+# Display options
+print(world_map)
+
 # for c in range(map_size ** 2):
 #     if c % map_size == 0:
 #         print()
